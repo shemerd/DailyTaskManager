@@ -44,7 +44,6 @@ function App() {
       }
       
       const data = await response.json();
-      console.log('Fetched tasks:', data);
       setTasks(data);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -56,7 +55,6 @@ function App() {
 
   const addTask = async (title: string) => {
     try {
-      // First add to local state for immediate feedback
       const tempTask: Task = {
         id: `temp-${Date.now()}`,
         title,
@@ -79,9 +77,7 @@ function App() {
       }
       
       const newTask = await response.json();
-      console.log('Added task:', newTask);
       
-      // Replace the temp task with the real one from the server
       setTasks(prevTasks => 
         prevTasks.map(task => task.id === tempTask.id ? newTask : task)
       );
@@ -95,7 +91,6 @@ function App() {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
 
-      // Update local state immediately
       setTasks(prevTasks => 
         prevTasks.map(t => t.id === taskId ? {...t, completed: !t.completed} : t)
       );
@@ -113,9 +108,7 @@ function App() {
       }
       
       const updatedTask = await response.json();
-      console.log('Updated task:', updatedTask);
       
-      // Ensure server state is reflected
       setTasks(prevTasks => 
         prevTasks.map(t => t.id === taskId ? updatedTask : t)
       );
@@ -127,7 +120,6 @@ function App() {
 
   const deleteTask = async (taskId: string) => {
     try {
-      // Update local state immediately
       setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
       
       const response = await fetch(`${API_URL}/tasks/${taskId}`, {
@@ -137,8 +129,6 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
-      console.log('Deleted task:', taskId);
     } catch (error) {
       console.error('Error deleting task:', error);
       fetchTasks();
@@ -147,7 +137,6 @@ function App() {
 
   const updateTask = async (task: Task) => {
     try {
-      // Update local state immediately
       setTasks(prevTasks => 
         prevTasks.map(t => t.id === task.id ? task : t)
       );
@@ -166,9 +155,7 @@ function App() {
       }
       
       const updatedTask = await response.json();
-      console.log('Updated task:', updatedTask);
       
-      // Ensure server state is reflected
       setTasks(prevTasks => 
         prevTasks.map(t => t.id === task.id ? updatedTask : t)
       );
@@ -182,7 +169,6 @@ function App() {
     const total = tasks.length;
     const completed = tasks.filter(t => t.completed).length;
     const active = total - completed;
-    
     return { total, completed, active };
   };
 
@@ -195,100 +181,68 @@ function App() {
   const stats = getTaskStats();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
-      <div className="max-w-lg mx-auto px-4">
-        <div className="text-center mb-5">
-          <h1 className="text-2xl font-semibold text-gray-800">
+    <div className="h-screen w-screen flex items-center justify-center">
+      <div className="app-container" style={{
+        width: '380px',
+        maxWidth: '90vw',
+        margin: '0 auto',
+        padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        border: '1px solid #f0f0f0',
+        borderRadius: '8px',
+        backgroundColor: 'white'
+      }}>
+        <div className="mb-6">
+          <h1 className="text-2xl font-medium text-gray-900">
             Daily Task Manager
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Organize your tasks efficiently</p>
+          <p className="text-sm text-gray-500">
+            Organize your tasks efficiently
+          </p>
         </div>
         
         {error && (
-          <div className="mb-4 p-2 bg-red-50 text-red-600 text-sm rounded border border-red-100">
-            <p>{error}</p>
+          <div className="mb-4 p-2 text-red-600 text-sm">
+            {error}
           </div>
         )}
-        
-        <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden mb-4">
-          <div className="border-b border-gray-100 px-3 py-2">
-            <h2 className="text-sm font-medium text-gray-700">Add New Task</h2>
-          </div>
-          
-          <div className="p-3">
-            <TaskForm
-              onSubmit={addTask}
-              editingTask={editingTask}
-              onUpdate={updateTask}
-            />
-          </div>
-        </div>
 
-        <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-700">Tasks ({filteredTasks.length})</h2>
-            <div className="flex space-x-1">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-2 py-1 text-xs font-medium rounded ${
-                  filter === 'all' 
-                    ? 'bg-blue-100 text-blue-600 border border-blue-200' 
-                    : 'text-gray-600 bg-gray-50 border border-gray-100 hover:bg-gray-100'
-                }`}
-              >
-                All ({stats.total})
-              </button>
-              <button
-                onClick={() => setFilter('active')}
-                className={`px-2 py-1 text-xs font-medium rounded ${
-                  filter === 'active' 
-                    ? 'bg-blue-100 text-blue-600 border border-blue-200' 
-                    : 'text-gray-600 bg-gray-50 border border-gray-100 hover:bg-gray-100'
-                }`}
-              >
-                Active ({stats.active})
-              </button>
-              <button
-                onClick={() => setFilter('completed')}
-                className={`px-2 py-1 text-xs font-medium rounded ${
-                  filter === 'completed' 
-                    ? 'bg-blue-100 text-blue-600 border border-blue-200' 
-                    : 'text-gray-600 bg-gray-50 border border-gray-100 hover:bg-gray-100'
-                }`}
-              >
-                Done ({stats.completed})
-              </button>
-            </div>
-          </div>
+        <TaskForm onSubmit={addTask} />
+
+        <div>
+          <h2 className="text-base font-medium text-gray-900 mb-2">
+            Tasks ({filteredTasks.length})
+          </h2>
           
-          <div className="p-3">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-6">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-              </div>
-            ) : (
-              <>
-                {filteredTasks.length === 0 ? (
-                  <div className="text-center py-6 text-sm text-gray-400">
-                    {filter === 'all' 
-                      ? 'No tasks yet. Add your first task above!' 
-                      : `No ${filter} tasks found.`}
-                  </div>
-                ) : (
-                  <TaskList
-                    tasks={filteredTasks}
-                    onToggleComplete={toggleComplete}
-                    onDeleteTask={deleteTask}
-                    onEditTask={setEditingTask}
-                  />
-                )}
-              </>
-            )}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+            </div>
+          ) : (
+            <>
+              {filteredTasks.length === 0 ? (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  {filter === 'all' 
+                    ? 'No tasks yet. Add your first task above!' 
+                    : `No ${filter} tasks found.`}
+                </div>
+              ) : (
+                <TaskList
+                  tasks={filteredTasks}
+                  onToggleComplete={toggleComplete}
+                  onDeleteTask={deleteTask}
+                  onEditTask={setEditingTask}
+                  filter={filter}
+                  stats={stats}
+                  onFilterChange={setFilter}
+                />
+              )}
+            </>
+          )}
         </div>
         
-        <div className="mt-4 text-center text-gray-400 text-xs">
-          <p>© {new Date().getFullYear()} Daily Task Manager</p>
+        <div className="mt-8 text-center text-xs text-gray-500">
+          © {new Date().getFullYear()} Daily Task Manager
         </div>
       </div>
     </div>
